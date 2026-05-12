@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Carousel Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Sales Carousel Generator</h1>
+      <p class="subtitle-demo">Demo interactiva - Fase 1 de VineReach: Sistema de ventas AI para bodegas</p>
+      <p>Completa los datos de tu producto — genera 8 slides listos para LinkedIn.</p>
+    </header>
+
+    <main>
+      <!-- Input Panel -->
+      <section class="panel" id="input-panel">
+
+        <div class="field">
+          <label for="tema">Tema del carrusel</label>
+          <input type="text" id="tema" placeholder="Ej: Cómo cerrar deals en 50% menos tiempo" />
+        </div>
+
+        <div class="field">
+          <label for="perfil">Perfil del vendedor</label>
+          <select id="perfil">
+            <option value="SDR">SDR</option>
+            <option value="AE">AE (Account Executive)</option>
+            <option value="VP Sales">VP Sales</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="producto">Nombre del producto</label>
+          <input type="text" id="producto" placeholder="Ej: VineReach" />
+        </div>
+
+        <div class="field">
+          <label for="publico">Público objetivo</label>
+          <input type="text" id="publico" placeholder="Ej: Equipos de ventas B2B" />
+        </div>
+
+        <div class="field">
+          <label>3 Beneficios Clave</label>
+          <input type="text" id="b1" placeholder="Beneficio 1 — Ej: Cierra deals 50% más rápido" />
+          <input type="text" id="b2" placeholder="Beneficio 2 — Ej: Pipeline visible en tiempo real" class="mt-s" />
+          <input type="text" id="b3" placeholder="Beneficio 3 — Ej: Integra con tu CRM actual" class="mt-s" />
+        </div>
+
+        <button id="generate-btn" class="btn-primary" disabled>Generar Carrusel</button>
+        <p id="error-msg" class="error hidden"></p>
+      </section>
+
+      <!-- Preview Panel -->
+      <section class="panel" id="preview-panel">
+        <div class="preview-header">
+          <h2>Preview</h2>
+          <div class="preview-actions hidden" id="preview-actions">
+            <button id="copy-text-btn" class="btn-secondary">Copiar todo</button>
+            <button id="download-btn" class="btn-secondary">Descargar HTML</button>
+          </div>
+        </div>
+
+        <div id="carousel-wrapper">
+          <div class="placeholder">
+            <div class="placeholder-icon">⟳</div>
+            <p>Completa el formulario y haz click en <strong>Generar Carrusel</strong></p>
+          </div>
+        </div>
+
+        <div id="visual-desc-section" class="info-section hidden">
+          <div class="info-section-header">
+            <span class="section-label">Descripción visual del slide</span>
+          </div>
+          <p id="visual-desc-text" class="info-text"></p>
+        </div>
+
+        <div id="caption-section" class="info-section hidden">
+          <div class="info-section-header">
+            <span class="section-label">Caption para LinkedIn</span>
+            <button id="copy-caption-btn" class="btn-secondary btn-sm">Copiar</button>
+          </div>
+          <pre id="caption-text" class="caption-box"></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
