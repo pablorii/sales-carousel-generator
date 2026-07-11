@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VineReach — Métricas semanales</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#FBFAF7;
+    --ink:#221419;
+    --wine:#7A1E2E;
+    --wine-soft:#A85463;
+    --line:#D8D2C8;
+    --muted:#7C6F66;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;
+    -webkit-font-smoothing:antialiased;
+    padding:24px 16px 48px;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+
+  /* Cabecera estilo etiqueta de vino: doble filete */
+  header{
+    border:1px solid var(--ink);
+    padding:6px;
+    margin-bottom:32px;
+  }
+  header .inner{
+    border:1px solid var(--ink);
+    text-align:center;
+    padding:28px 16px 22px;
+  }
+  header h1{
+    font-size:clamp(26px,5vw,38px);
+    font-weight:400;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  header h1 span{color:var(--wine)}
+  header .sub{
+    margin-top:8px;
+    font-size:13px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  header .cosecha{
+    margin-top:14px;
+    font-size:12px;
+    letter-spacing:.08em;
+    color:var(--muted);
+  }
+  header .cosecha b{color:var(--ink);font-weight:400}
+
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:36px;
+  }
+  .kpi{
+    border-top:2px solid var(--wine);
+    border-bottom:1px solid var(--line);
+    padding:14px 4px 16px;
+    text-align:center;
+    background:transparent;
+  }
+  .kpi .num{
+    font-size:clamp(30px,6vw,46px);
+    line-height:1.1;
+    color:var(--wine);
+    font-variant-numeric:tabular-nums;
+  }
+  .kpi .lbl{
+    margin-top:6px;
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  section{margin-bottom:40px}
+  section h2{
+    font-size:14px;
+    font-weight:400;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--ink);
+    border-bottom:1px solid var(--line);
+    padding-bottom:8px;
+    margin-bottom:16px;
+  }
+  .chart-box{position:relative;width:100%;height:280px}
+
+  #estado{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    padding:40px 10px;
+  }
+  #contenido{display:none}
+
+  footer{
+    margin-top:48px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--muted);
+    text-align:center;
+    letter-spacing:.04em;
+  }
+  footer a{color:var(--wine);text-decoration:none}
+
+  @media (max-width:560px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .chart-box{height:240px}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="inner">
+      <h1>Vine<span>Reach</span></h1>
+      <div class="sub">Métricas semanales · Prospección B2B para bodegas</div>
+      <div class="cosecha">Última actualización: <b id="fecha">—</b> · Se actualiza automáticamente cada lunes</div>
+    </div>
+  </header>
+
+  <div id="estado">Cargando métricas…</div>
+
+  <div id="contenido">
+    <div class="kpis">
+      <div class="kpi"><div class="num" id="kNuevos">—</div><div class="lbl">Nuevos esta semana</div></div>
+      <div class="kpi"><div class="num" id="kTotal">—</div><div class="lbl">Total en base</div></div>
+      <div class="kpi"><div class="num" id="kPendientes">—</div><div class="lbl">Pendientes</div></div>
+      <div class="kpi"><div class="num" id="kTasa">—</div><div class="lbl">Tasa respuesta</div></div>
+    </div>
+
+    <section>
+      <h2>Evolución semanal</h2>
+      <div class="chart-box"><canvas id="chartLinea"></canvas></div>
+    </section>
+
+    <section>
+      <h2>Desglose por mercado</h2>
+      <div class="chart-box"><canvas id="chartBarras"></canvas></div>
+    </section>
+  </div>
+
+  <footer>
+    Datos agregados, sin información de contactos ·
+    <a href="https://github.com/pablorii/sales-carousel-generator" rel="noopener">VineReach en GitHub</a>
+  </footer>
+</div>
+
+<script>
+// ================================================================
+// URL del CSV publicado de la pestaña "Metricas" (SOLO agregados).
+// Formato: https://docs.google.com/spreadsheets/d/e/{token}/pub?gid={gid}&single=true&output=csv
+var CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTguYO8l-lWlZcR9CVC8byfgkAtyzEGfJLwdU097Z64haPVuC1k8bbxrgZzHz2xGn_SkuWuXvWCS0oJ/pub?gid=834089857&single=true&output=csv";
+// ================================================================
+
+// Parser CSV mínimo con soporte de comillas
+function parseCSV(text){
+  var rows=[],row=[],cur="",inQ=false;
+  for(var i=0;i<text.length;i++){
+    var c=text[i];
+    if(inQ){
+      if(c==='"'){
+        if(text[i+1]==='"'){cur+='"';i++;}
+        else inQ=false;
+      } else cur+=c;
+    } else {
+      if(c==='"') inQ=true;
+      else if(c===','){row.push(cur);cur="";}
+      else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur="";}
+      else if(c!=='\r') cur+=c;
+    }
+  }
+  if(cur.length||row.length){row.push(cur);rows.push(row);}
+  return rows.filter(function(r){return r.some(function(v){return v.trim()!=="";});});
+}
+
+// "Madrid: 20; Valladolid: 26" -> [{m:"Madrid",n:20},...]
+function parseDesglose(txt){
+  if(!txt) return [];
+  return txt.split("; ").map(function(p){
+    var kv=p.split(": ");
+    return {m:(kv[0]||"").trim(), n:parseInt(kv[1],10)||0};
+  }).filter(function(x){return x.m!=="";});
+}
+
+function fallo(msg){
+  document.getElementById("estado").textContent=msg;
+}
+
+fetch(CSV_URL)
+  .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); })
+  .then(function(text){
+    var rows=parseCSV(text);
+    if(rows.length<2){ fallo("Aún no hay datos: la primera fila de métricas se genera el lunes a las 9:00."); return; }
+
+    var header=rows[0].map(function(h){return h.trim().toLowerCase();});
+    var idx={};
+    ["fecha","nuevos","total","pendientes","enviados","respondieron","descartados","tasa","desglose"].forEach(function(k){
+      idx[k]=header.indexOf(k);
+    });
+    if(idx.fecha<0||idx.total<0){ fallo("El CSV no tiene el formato esperado."); return; }
+
+    var datos=rows.slice(1).map(function(r){
+      return {
+        fecha:r[idx.fecha]||"",
+        nuevos:parseInt(r[idx.nuevos],10)||0,
+        total:parseInt(r[idx.total],10)||0,
+        pendientes:parseInt(r[idx.pendientes],10)||0,
+        tasa:parseInt(r[idx.tasa],10)||0,
+        desglose:r[idx.desglose]||""
+      };
+    });
+
+    var ult=datos[datos.length-1];
+    document.getElementById("fecha").textContent=ult.fecha;
+    document.getElementById("kNuevos").textContent=ult.nuevos;
+    document.getElementById("kTotal").textContent=ult.total;
+    document.getElementById("kPendientes").textContent=ult.pendientes;
+    document.getElementById("kTasa").textContent=ult.tasa+"%";
+
+    document.getElementById("estado").style.display="none";
+    document.getElementById("contenido").style.display="block";
+
+    var wine=getComputedStyle(document.documentElement).getPropertyValue("--wine").trim();
+    var wineSoft=getComputedStyle(document.documentElement).getPropertyValue("--wine-soft").trim();
+    var muted=getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
+    var line=getComputedStyle(document.documentElement).getPropertyValue("--line").trim();
+    Chart.defaults.font.family="Georgia, 'Times New Roman', serif";
+    Chart.defaults.color=muted;
+
+    // Línea: total acumulado + nuevos por semana (funciona con 1 sola fila)
+    new Chart(document.getElementById("chartLinea"),{
+      type:"line",
+      data:{
+        labels:datos.map(function(d){return d.fecha;}),
+        datasets:[
+          {label:"Total en base",data:datos.map(function(d){return d.total;}),
+           borderColor:wine,backgroundColor:wine,pointRadius:5,pointHoverRadius:7,tension:.25},
+          {label:"Nuevos por semana",data:datos.map(function(d){return d.nuevos;}),
+           borderColor:wineSoft,backgroundColor:wineSoft,pointRadius:5,pointHoverRadius:7,tension:.25,borderDash:[6,4]}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:"bottom",labels:{boxWidth:12,padding:16}}},
+        scales:{
+          y:{beginAtZero:true,ticks:{precision:0},grid:{color:line}},
+          x:{grid:{display:false}}
+        }
+      }
+    });
+
+    // Barras: desglose por mercado de la última fila
+    var mercados=parseDesglose(ult.desglose);
+    if(mercados.length===0){ mercados=[{m:"Sin datos",n:0}]; }
+    new Chart(document.getElementById("chartBarras"),{
+      type:"bar",
+      data:{
+        labels:mercados.map(function(x){return x.m;}),
+        datasets:[{label:"Prospects",data:mercados.map(function(x){return x.n;}),
+          backgroundColor:wine,borderRadius:2,maxBarThickness:64}]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          y:{beginAtZero:true,ticks:{precision:0},grid:{color:line}},
+          x:{grid:{display:false}}
+        }
+      }
+    });
+  })
+  .catch(function(e){
+    fallo("No se han podido cargar las métricas. Reintenta en unos minutos. ("+e.message+")");
+  });
+</script>
+</body>
+</html>
+Añadir dashboard de métricas
