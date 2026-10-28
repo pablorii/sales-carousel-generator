@@ -20,7 +20,7 @@ Un sistema de ventas con IA para bodegas, sobre todo de Castilla y León, que ve
 | 2 · Prospección | Busca restaurantes y escribe un email de primer contacto para cada uno | Make, escenario `5789249` | Activo, cada lunes a las 8:00 |
 | 3 · Reporting | Email semanal con métricas y dashboard público | Make, escenario `6494967` + `dashboard/index.html` | Activo, cada lunes a las 9:00 |
 
-Estado detallado: `docs/estado.md`. Tareas pendientes, por prioridad: `docs/roadmap.md`. Escenarios de Make: `docs/make/README.md`.
+Estado y brechas: `docs/estado.md`. Rumbo (objetivos en orden, decide aquí qué trabajar): `docs/roadmap.md`. Escenarios de Make: `docs/make/README.md`.
 
 ## Estructura del repositorio
 
