@@ -1,33 +1,15 @@
-# Sales Carousel Generator
+# VineReach
 
-Genera carruseles de ventas para LinkedIn con inteligencia artificial en segundos.
+Un sistema de ventas con IA para bodegas que venden a hostelería. Tiene tres módulos:
 
----
+1. **Contenido:** un agente que investiga la web de la bodega, propone enfoques y diseña carruseles de LinkedIn listos para descargar en PDF (`apps/carruseles-agente/`). Funciona dentro de Claude con la cuenta de quien lo usa.
+2. **Prospección:** cada lunes un escenario de Make busca restaurantes con Google Places, descarta los que ya estaban y escribe un email de primer contacto personalizado con un LLM. La bodega lo revisa antes de enviarlo.
+3. **Reporting:** un informe semanal por email y un [dashboard público](https://pablorii.github.io/sales-carousel-generator/dashboard/) con los datos agregados.
 
-## Cómo usarlo
+> La página de la raíz (`index.html`) es la primera versión del generador: usa plantillas fijas y no IA. Se sustituirá por una web del caso de estudio.
 
-### Forma más fácil (sin descargar nada)
+Los ejemplos públicos usan una bodega ficticia, *Viñas del Cierzo* (D.O. Cigales).
 
-Abre este link en tu navegador:
+**Stack:** Claude · Make · Google Places API · Groq (Llama 3.3) · Resend · Google Sheets · HTML/CSS/JS
 
-**👉 https://pablorii.github.io/sales-carousel-generator/**
-
-Eso es todo. No necesitas instalar nada.
-
----
-
-### Forma local (si quieres modificar el código)
-
-1. Descarga el repositorio (botón verde "Code" → "Download ZIP")
-2. Descomprime la carpeta
-3. Haz doble click en el archivo **`index.html`**
-
-Se abrirá directamente en tu navegador.
-
----
-
-## Requisitos
-
-En cualquiera de las dos formas necesitas una **API Key de Anthropic** (Claude).  
-Puedes obtenerla en [console.anthropic.com](https://console.anthropic.com).  
-La app te la pedirá la primera vez que la abras y la guardará para las próximas sesiones.
+Construido por **Pablo Orihuela**, Valladolid.

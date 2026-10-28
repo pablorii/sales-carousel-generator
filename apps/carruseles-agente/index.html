@@ -1,0 +1,662 @@
+<title>VineReach Carruseles</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=DM+Serif+Display:ital@0;1&family=Instrument+Serif:ital@0;1&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Archivo:wght@400;600;800&family=Archivo+Black&family=Figtree:wght@400;500;600;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Heebo:wght@400;700;900&family=Syne:wght@500;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* Layout: mesa de trabajo de un agente — a la izquierda el proceso (encargo, bitácora, dossier, enfoques); a la derecha el carrusel, el chat de ajustes y la exportación. */
+:root{
+  --bg:#F4F3F1; --surface:#FFFFFF; --fg:#1E1A1B; --muted:#6A6265; --line:#E2DDDA;
+  --accent:#6E1F33; --accent-fg:#FFFFFF; --soft:#F2E8EA; --ok:#2F6B3A; --warn:#8A4B00;
+  --display:"Bodoni Moda", "Didot", Georgia, serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141113; --surface:#1D191B; --fg:#EEE8E6; --muted:#A79DA1; --line:#352E31;
+  --accent:#DB8DA0; --accent-fg:#1A1014; --soft:#2A2024; --ok:#7CC48A; --warn:#E3A35A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141113; --surface:#1D191B; --fg:#EEE8E6; --muted:#A79DA1; --line:#352E31;
+  --accent:#DB8DA0; --accent-fg:#1A1014; --soft:#2A2024; --ok:#7CC48A; --warn:#E3A35A; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 56px}
+.wrap{max-width:1220px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;border-bottom:1px solid var(--line);padding-bottom:14px}
+header.top h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,34px);margin:0;text-wrap:balance}
+header.top h1 span{color:var(--accent)}
+header.top p{margin:0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h2{font-family:var(--display);font-size:19px;font-weight:700;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label,.lbl{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+input[type=text],input[type=url],select,textarea{width:100%;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:9px 10px}
+input[type=file]{font:inherit;font-size:13px;color:var(--muted);max-width:100%}
+textarea{resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.thumb:focus-visible,.angle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:7px;padding:10px 14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-weight:600}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button.link{border:none;background:none;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.badge{display:inline-block;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--accent);padding:3px 8px;border-radius:999px}
+.status{font-size:13.5px;color:var(--muted);margin:0;min-height:1.4em}
+.status.err{color:var(--warn)}
+
+/* bitácora del agente */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.steps div{font-size:11.5px;font-weight:600;color:var(--muted);border-top:3px solid var(--line);padding-top:6px;text-align:left}
+.steps div.on{color:var(--accent);border-color:var(--accent)}
+.steps div.done{color:var(--fg);border-color:var(--fg)}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;font-size:13px}
+.log li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:6px;color:var(--muted);overflow-wrap:anywhere}
+.log li b{color:var(--fg);font-weight:600}
+.log li .dot{width:8px;height:8px;border-radius:50%;background:var(--line);margin-top:6px}
+.log li.run .dot{background:var(--accent);animation:pulse 1s infinite alternate}
+.log li.ok .dot{background:var(--ok)}
+.log li.bad .dot{background:var(--warn)}
+@keyframes pulse{from{opacity:.35}to{opacity:1}}
+.swatches{display:flex;gap:6px;flex-wrap:wrap}
+.swatches span{width:26px;height:26px;border-radius:50%;border:1px solid var(--line)}
+.angles{display:flex;flex-direction:column;gap:8px}
+.angle{text-align:left;font-weight:400;display:flex;flex-direction:column;gap:3px;padding:12px 14px}
+.angle strong{font-family:var(--display);font-size:16.5px}
+.angle span{font-size:13.5px;color:var(--muted)}
+.angle.sel{border-color:var(--accent);background:var(--soft)}
+
+/* visor */
+.viewer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,320px);gap:20px;align-items:start}
+@media (max-width:1150px){.viewer{grid-template-columns:minmax(0,1fr)}}
+.stagecol{display:flex;flex-direction:column;gap:10px;align-items:center;min-width:0}
+.stage{position:relative;width:100%;max-width:460px;aspect-ratio:4/5;overflow:hidden;border-radius:6px;box-shadow:0 10px 30px rgba(20,10,14,.2);background:var(--soft)}
+.stage .frame{position:absolute;top:0;left:0;transform-origin:0 0}
+.nav{display:flex;align-items:center;gap:12px}
+.nav button{width:40px;height:40px;padding:0;border-radius:50%}
+#counter{font-variant-numeric:tabular-nums;color:var(--muted);min-width:56px;text-align:center}
+.thumbs{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding:4px 2px 8px}
+.thumb{position:relative;width:64px;aspect-ratio:4/5;flex:none;overflow:hidden;border-radius:3px;cursor:pointer;opacity:.6;border:2px solid transparent;background:var(--soft)}
+.thumb.on{opacity:1;border-color:var(--accent)}
+.thumb .frame{position:absolute;top:0;left:0;transform-origin:0 0;pointer-events:none}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.caption{white-space:pre-wrap;font-family:var(--body);font-size:14px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:12px;max-height:260px;overflow:auto;margin:0;overflow-wrap:anywhere}
+.notice{font-size:13px;background:var(--soft);border-radius:7px;padding:10px 12px;margin:0}
+details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent)}
+details textarea{margin-top:8px;font-family:var(--mono);font-size:12px}
+
+/* base para los slides que diseña Claude */
+.frame{width:1080px;height:1350px;overflow:hidden;font-family:"Figtree",sans-serif;color:#111;line-height:1.2;text-align:left;background:#fff}
+.frame > *{width:1080px;height:1350px}
+#renderhost{position:absolute;left:-30000px;top:0;width:1080px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Vine<span>Reach</span> Carruseles</h1>
+    <p>Un agente que investiga la bodega en la web, te propone enfoques, diseña cada slide desde cero y revisa su propio trabajo antes de entregártelo.</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <form class="panel" id="brief" autocomplete="off">
+        <h2>Encargo</h2>
+        <div class="field"><label for="f-web">Web de la bodega</label><input type="url" id="f-web" placeholder="https://…"></div>
+        <div class="row2">
+          <div class="field"><label for="f-bodega">Bodega</label><input type="text" id="f-bodega" placeholder="Nombre"></div>
+          <div class="field"><label for="f-vino">Vino a destacar</label><input type="text" id="f-vino" placeholder="Opcional"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="f-publico">Dirigido a</label>
+            <select id="f-publico">
+              <option>restaurantes de cocina tradicional</option><option>asadores</option><option>restaurantes de alta cocina</option>
+              <option>hoteles con restaurante</option><option>vinotecas y bares de vinos</option><option>distribuidores de hostelería</option>
+              <option>importadores internacionales</option>
+            </select></div>
+          <div class="field"><label for="f-n">Slides</label><select id="f-n"><option>6</option><option selected>8</option><option>10</option></select></div>
+        </div>
+        <div class="field"><label for="f-notas">Qué quieres conseguir</label>
+          <textarea id="f-notas" rows="2" placeholder="Ej.: que los restaurantes nos pidan muestras para la carta de verano"></textarea></div>
+        <div class="field"><label for="f-foto">Foto de la botella (opcional)</label><input type="file" id="f-foto" accept="image/jpeg,image/png,image/webp">
+          <p class="hint">Mejor con fondo liso. Claude la verá y la integrará en el diseño.</p></div>
+        <div class="actions">
+          <button type="submit" class="primary" id="go">Investigar y proponer</button>
+          <button type="button" id="stop" hidden>Detener</button>
+          <button type="button" class="link" id="manual">Pegar los datos a mano</button>
+        </div>
+        <p class="status" id="status" role="status"></p>
+      </form>
+
+      <section class="panel" aria-label="Proceso del agente">
+        <h2>Proceso</h2>
+        <div class="steps" id="steps"><div>Investigar</div><div>Enfoques</div><div>Diseñar</div><div>Revisar</div><div>Listo</div></div>
+        <ul class="log" id="log"></ul>
+      </section>
+
+      <section class="panel" id="dossierPanel" aria-label="Dossier">
+        <h2>Dossier <span class="badge" id="dossierBadge">Ejemplo</span></h2>
+        <p class="hint">Lo que el agente sabe de la bodega. Corrige o añade lo que quieras: solo usará estos hechos.</p>
+        <div class="swatches" id="swatches" aria-label="Colores de marca"></div>
+        <textarea id="dossier" rows="10"></textarea>
+      </section>
+
+      <section class="panel" id="anglesPanel" hidden aria-label="Enfoques">
+        <h2>Elige un enfoque</h2>
+        <div class="angles" id="angles"></div>
+        <button type="button" class="primary" id="design" disabled>Diseñar el carrusel</button>
+      </section>
+    </div>
+
+    <section class="panel" aria-label="Carrusel">
+      <h2>Carrusel <span class="badge" id="ejemplo">Ejemplo</span></h2>
+      <p class="hint" id="estilo"></p>
+      <div class="viewer">
+        <div class="stagecol">
+          <div class="stage" id="stage"></div>
+          <div class="nav">
+            <button type="button" id="prev" aria-label="Slide anterior">←</button>
+            <span id="counter">1 / 1</span>
+            <button type="button" id="next" aria-label="Slide siguiente">→</button>
+          </div>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+        <div class="side">
+          <div class="field"><label for="ask">Pide un cambio</label>
+            <textarea id="ask" rows="3" placeholder="Ej.: en esta slide pon el premio más grande · haz todo más sobrio · cambia el gancho de la portada"></textarea></div>
+          <div class="actions">
+            <button type="button" class="primary" id="askThis">Cambiar esta slide</button>
+            <button type="button" id="askAll">Cambiar todo</button>
+          </div>
+          <div class="actions">
+            <button type="button" id="review">Revisar el diseño otra vez</button>
+          </div>
+          <p class="status" id="askStatus" role="status"></p>
+          <div class="actions">
+            <button type="button" class="primary" id="pdf">Descargar PDF</button>
+            <button type="button" id="png">PNG de esta slide</button>
+          </div>
+          <p class="status" id="dlStatus" role="status"></p>
+          <details><summary>Ver el código de esta slide</summary><textarea id="code" rows="8" spellcheck="false"></textarea>
+            <div class="actions" style="margin-top:6px"><button type="button" id="applyCode">Aplicar código</button></div></details>
+        </div>
+      </div>
+      <div class="field">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span class="lbl" id="capLbl">Texto del post</span>
+          <button type="button" id="copy">Copiar</button>
+        </div>
+        <pre class="caption" id="caption" tabindex="0" aria-labelledby="capLbl"></pre>
+      </div>
+      <p class="notice" id="noAI" hidden>Para usar el agente, abre esta página dentro de Claude con tu cuenta. Aquí puedes ver el ejemplo y editar su código.</p>
+    </section>
+  </div>
+</div>
+<div id="renderhost" aria-hidden="true"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const FONTS = ["Bodoni Moda","Fraunces","DM Serif Display","Instrument Serif","Cormorant Garamond","Archivo","Archivo Black","Figtree","Bricolage Grotesque","Heebo","Syne"];
+const W = 1080, H = 1350;
+
+/* ---------- estado ---------- */
+/* Ejemplo con una bodega ficticia, para que se vea qué hace la herramienta antes de usarla. */
+const EXAMPLE = {
+  bodega:"Viñas del Cierzo (ficticia)", colores:["#4A1724","#E9DFD3","#B8893B"], estilo:"Ejemplo: tinta burdeos, papel crudo y un dorado de cápsula; tipografía de etiqueta clásica con una grotesca firme.",
+  dossier:"- Bodega familiar en D.O. Cigales [ejemplo]\n- Cierzo Rosado 2025: tempranillo y garnacha [ejemplo]\n- Prensado directo, sin crianza [ejemplo]\n- Servir a 6-8 ºC [ejemplo]\n- Marida con arroces, ensaladas y pescado azul [ejemplo]",
+  caption:"¿Cuántas copas de rosado vendes en agosto?\n\nEn muchos restaurantes el rosado es la referencia menos cuidada de la carta, justo cuando más se pide.\n\nTe contamos por qué un rosado de Cigales encaja con arroces y pescado, y cómo probarlo con tu equipo sin compromiso.\n\nEscríbeme por privado y te dejamos dos botellas.",
+  hashtags:["vino","Cigales","hostelería","rosado"],
+  slides:[
+`<div style="width:1080px;height:1350px;background:#4A1724;position:relative;padding:110px 96px;display:flex;flex-direction:column;justify-content:space-between">
+ <div style="font-family:Figtree;font-weight:600;font-size:28px;letter-spacing:6px;color:#B8893B">PARA RESTAURANTES CON ARROCES</div>
+ <div style="font-family:'Bodoni Moda';font-weight:700;font-size:132px;line-height:1.02;color:#F6EFE6">El rosado que tu carta de verano está pidiendo</div>
+ <div style="display:flex;justify-content:space-between;font-family:Figtree;font-size:26px;letter-spacing:3px;color:#D9C9B6"><span>VIÑAS DEL CIERZO · D.O. CIGALES</span><span>01 / 05 →</span></div></div>`,
+`<div style="width:1080px;height:1350px;background:#E9DFD3;position:relative;padding:110px 96px">
+ <div style="font-family:Figtree;font-weight:600;font-size:28px;letter-spacing:6px;color:#4A1724">TEMPERATURA DE SERVICIO</div>
+ <div style="font-family:'Bodoni Moda';font-weight:400;font-size:330px;line-height:1;color:#4A1724;margin-top:140px">6–8<span style="font-size:150px">ºC</span></div>
+ <div style="font-family:Figtree;font-size:44px;line-height:1.35;color:#3A2A2E;margin-top:60px;max-width:820px">Frío de verdad. Así se mantiene fresco en terraza y acompaña el plato de principio a fin.</div>
+ <div style="position:absolute;left:96px;right:96px;bottom:96px;display:flex;justify-content:space-between;font-family:Figtree;font-size:26px;letter-spacing:3px;color:#8B6F62"><span>VIÑAS DEL CIERZO</span><span>02 / 05</span></div></div>`,
+`<div style="width:1080px;height:1350px;background:#F6EFE6;position:relative;display:flex">
+ <div style="width:250px;background:#B8893B;display:flex;align-items:center;justify-content:center"><div style="font-family:'Archivo Black';font-size:64px;color:#4A1724;letter-spacing:8px;transform:rotate(-90deg);white-space:nowrap;transform-origin:center">MARIDAJE</div></div>
+ <div style="flex:1;padding:150px 80px;display:flex;flex-direction:column;gap:70px">
+  <div style="font-family:'Bodoni Moda';font-weight:700;font-size:84px;line-height:1.05;color:#4A1724">Funciona con lo que más vendes en verano</div>
+  <div style="font-family:Figtree;font-size:46px;line-height:1.3;color:#3A2A2E;border-top:2px solid #4A1724;padding-top:28px">Arroces y paellas</div>
+  <div style="font-family:Figtree;font-size:46px;line-height:1.3;color:#3A2A2E;border-top:2px solid #4A1724;padding-top:28px">Ensaladas y verdura a la brasa</div>
+  <div style="font-family:Figtree;font-size:46px;line-height:1.3;color:#3A2A2E;border-top:2px solid #4A1724;padding-top:28px">Pescado azul</div></div>
+ <div style="position:absolute;right:96px;bottom:96px;font-family:Figtree;font-size:26px;letter-spacing:3px;color:#8B6F62">03 / 05</div></div>`,
+`<div style="width:1080px;height:1350px;background:#2B0D15;position:relative;padding:160px 110px;display:flex;flex-direction:column;justify-content:center">
+ <div style="font-family:'Instrument Serif';font-style:italic;font-size:300px;line-height:.6;color:#B8893B">“</div>
+ <div style="font-family:'Instrument Serif';font-style:italic;font-size:96px;line-height:1.1;color:#F6EFE6">Un rosado con historia es la recomendación más fácil para tu sala.</div>
+ <div style="font-family:Figtree;font-size:34px;color:#D9C9B6;margin-top:60px">Se cuenta en una frase y invita a la segunda copa.</div>
+ <div style="position:absolute;left:110px;right:110px;bottom:96px;display:flex;justify-content:space-between;font-family:Figtree;font-size:26px;letter-spacing:3px;color:#8B6F62"><span>VIÑAS DEL CIERZO</span><span>04 / 05</span></div></div>`,
+`<div style="width:1080px;height:1350px;background:#B8893B;position:relative;padding:120px 96px;display:flex;flex-direction:column;justify-content:space-between">
+ <div style="font-family:Figtree;font-weight:600;font-size:28px;letter-spacing:6px;color:#4A1724">SIGUIENTE PASO</div>
+ <div><div style="font-family:'Bodoni Moda';font-weight:700;font-size:118px;line-height:1.02;color:#2B0D15">¿Te enviamos dos botellas?</div>
+ <div style="font-family:Figtree;font-size:44px;line-height:1.35;color:#2B0D15;margin-top:50px">Cátalo con tu equipo y tus platos. Si no encaja, no pasa nada.</div></div>
+ <div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="font-family:Figtree;font-weight:800;font-size:40px;color:#2B0D15;background:#F6EFE6;padding:22px 34px">Escríbenos por privado</div><span style="font-family:Figtree;font-size:26px;letter-spacing:3px;color:#4A1724">05 / 05</span></div></div>`
+  ]
+};
+let S = { example:true, bodega:EXAMPLE.bodega, colores:EXAMPLE.colores, dossier:EXAMPLE.dossier, estilo:EXAMPLE.estilo,
+          slides:EXAMPLE.slides.slice(), caption:EXAMPLE.caption, hashtags:EXAMPLE.hashtags, enfoques:[], enfoque:null, fuentes:[] };
+let cur = 0, foto = null /* {dataURL, blob} */, sample = null, mcp = null, dl = null, ctl = null, busy = false;
+
+function save(){ try{ if(!S.example) localStorage.setItem("vr-carrusel", JSON.stringify(S)); }catch(e){} }
+function load(){ try{ const t = localStorage.getItem("vr-carrusel"); if(t){ const o = JSON.parse(t); if(o && Array.isArray(o.slides) && o.slides.length) S = Object.assign(S,o,{example:false}); } }catch(e){} }
+
+/* ---------- saneado y montaje de slides ---------- */
+function clean(html){
+  const safe = window.DOMPurify ? DOMPurify.sanitize(String(html||""), {FORBID_TAGS:["style","script","iframe","object","embed","link","form","input","button","textarea","select","video","audio","meta","base"], FORBID_ATTR:["srcset","href","action","formaction"], ALLOW_DATA_ATTR:true}) : "";
+  const t = document.createElement("template"); t.innerHTML = safe;
+  t.content.querySelectorAll("[style]").forEach(el=>{ const st = el.getAttribute("style"); if(/url\s*\(/i.test(st)) el.setAttribute("style", st.replace(/[^;]*url\s*\([^)]*\)[^;]*;?/gi,"")); });
+  t.content.querySelectorAll("img").forEach(img=>{
+    if (!img.hasAttribute("data-foto") || !foto){ img.remove(); return; }
+    const d = document.createElement("div");
+    d.setAttribute("style", (img.getAttribute("style")||"") + `;background-image:url(${foto.dataURL});background-size:contain;background-repeat:no-repeat;background-position:center bottom;`);
+    img.replaceWith(d);
+  });
+  let root = t.content.firstElementChild;
+  if (!root || t.content.children.length !== 1){ const w = document.createElement("div"); w.append(...t.content.childNodes); root = w; }
+  root.style.width = W+"px"; root.style.height = H+"px"; root.style.overflow = "hidden";
+  if (!root.style.position) root.style.position = "relative";
+  root.style.boxSizing = "border-box";
+  return root;
+}
+function frame(html){ const f = document.createElement("div"); f.className = "frame"; f.appendChild(clean(html)); return f; }
+
+/* ---------- visor ---------- */
+function fit(box, f){ const s = box.clientWidth / W; f.style.transform = `scale(${s})`; }
+function render(){
+  const n = S.slides.length; if (!n) return; cur = Math.max(0, Math.min(cur, n-1));
+  const stage = $("stage"); stage.textContent = ""; const f = frame(S.slides[cur]); stage.appendChild(f); fit(stage,f);
+  const th = $("thumbs"); th.textContent = "";
+  S.slides.forEach((h,i)=>{
+    const b = document.createElement("div"); b.className = "thumb"+(i===cur?" on":""); b.tabIndex = 0; b.setAttribute("role","button"); b.setAttribute("aria-label","Slide "+(i+1));
+    const tf = frame(h); b.appendChild(tf); th.appendChild(b); requestAnimationFrame(()=>fit(b,tf));
+    const go = ()=>{ cur=i; render(); }; b.onclick = go; b.onkeydown = e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } };
+  });
+  $("counter").textContent = (cur+1)+" / "+n;
+  $("prev").disabled = cur===0; $("next").disabled = cur===n-1;
+  $("code").value = S.slides[cur];
+  const tags = (S.hashtags||[]).map(t=>"#"+String(t).replace(/^#/,"").replace(/\s+/g,"")).join(" ");
+  $("caption").textContent = (S.caption||"") + (tags?"\n\n"+tags:"");
+  $("ejemplo").hidden = !S.example; $("dossierBadge").hidden = !S.example;
+  $("estilo").textContent = S.estilo||"";
+  $("dossier").value = S.dossier||"";
+  const sw = $("swatches"); sw.textContent = "";
+  (S.colores||[]).forEach(c=>{ const s=document.createElement("span"); s.style.background=c; s.title=c; sw.appendChild(s); });
+}
+new ResizeObserver(()=>{ const f=$("stage").firstChild; if(f) fit($("stage"),f); }).observe($("stage"));
+$("prev").onclick = ()=>{ cur--; render(); };
+$("next").onclick = ()=>{ cur++; render(); };
+document.addEventListener("keydown", e=>{ if (e.target.closest("input,textarea,select,[contenteditable]")) return;
+  if (e.key==="ArrowLeft" && cur>0) $("prev").click(); if (e.key==="ArrowRight" && cur<S.slides.length-1) $("next").click(); });
+$("dossier").addEventListener("input", e=>{ S.dossier = e.target.value; save(); });
+$("applyCode").onclick = ()=>{ S.slides[cur] = $("code").value; S.example=false; render(); save(); };
+
+/* ---------- bitácora ---------- */
+function step(k){ [...$("steps").children].forEach((d,i)=>{ d.className = i<k ? "done" : i===k ? "on" : ""; }); }
+function log(text, state){ const li = document.createElement("li"); li.className = state||"run"; li.innerHTML = '<span class="dot"></span><span></span>'; li.lastChild.textContent = text; $("log").appendChild(li); $("log").scrollTop = 1e6; return li; }
+function done(li, state, text){ if(!li) return; li.className = state||"ok"; if(text) li.lastChild.textContent = text; }
+function setStatus(id, msg, err){ $(id).className = "status"+(err?" err":""); $(id).textContent = msg||""; }
+
+const SAMPLE_ERR = {
+  not_granted:"No has dado permiso para usar Claude en esta página. Vuelve a abrirla y acepta.",
+  sampling_disabled:"Claude no está disponible en esta cuenta.",
+  rate_limited:"Has llegado al límite de uso por ahora. Prueba de nuevo en un rato.",
+  session_expired:"Tu sesión ha caducado. Vuelve a iniciar sesión en Claude.",
+  refused:"Claude no ha querido hacer esto. Cambia el encargo e inténtalo otra vez.",
+  invalid_json:"La respuesta llegó incompleta. Inténtalo otra vez.",
+  empty_completion:"Claude no devolvió nada. Prueba con menos slides.",
+  prompt_too_large:"Hay demasiado texto. Recorta el dossier.",
+  cancelled:"Detenido."
+};
+const MCP_ERR = {
+  server_not_connected:"Firecrawl no está conectado. Añádelo en claude.ai → Ajustes → Conectores, o pega los datos a mano.",
+  needs_reauth:"Firecrawl necesita reconectarse en claude.ai → Ajustes → Conectores.",
+  not_in_manifest:"No has permitido que esta página use Firecrawl. Puedes pegar los datos a mano.",
+  approval_required:"Hace falta que apruebes el uso de Firecrawl para leer webs.",
+  selection_required:"Tienes varias conexiones de Firecrawl: elige una cuando Claude te lo pida.",
+  blocked_by_policy:"Tu organización no permite usar Firecrawl aquí."
+};
+function errMsg(e){ return (e && (SAMPLE_ERR[e.code] || MCP_ERR[e.code])) || "Algo falló al hablar con Claude. Inténtalo de nuevo."; }
+function lock(on){ busy = on; ["go","design","askThis","askAll","review","manual"].forEach(id=>$(id).disabled = on || (id!=="manual" && !sample)); $("stop").hidden = !on;
+  if(!on && !S.enfoque) $("design").disabled = true; }
+$("stop").onclick = ()=> ctl && ctl.abort();
+
+/* ---------- herramientas del agente (Firecrawl, con la cuenta de quien usa la página) ---------- */
+let mcpProblem = null;
+const OBJ = "Reunir hechos verificables sobre una bodega para escribir un carrusel B2B de LinkedIn.";
+function stripMd(md){ return String(md||"").replace(/!\[[^\]]*\]\([^)]*\)/g,"").replace(/\[([^\]]*)\]\([^)]*\)/g,"$1").replace(/\n{3,}/g,"\n\n").trim(); }
+const TOOLS = [
+  { name:"buscar_web", description:"Busca en la web. Devuelve hasta 5 resultados con url, título y extracto. Úsala para encontrar la web oficial, premios o prensa.",
+    inputSchema:{type:"object",properties:{query:{type:"string"}},required:["query"]},
+    async execute(input){ const q = String(input.query||"").slice(0,200); const li = log("Buscando «"+q+"»");
+      try{ const r = await mcp.callTool("Firecrawl","firecrawl_search",{query:q, limit:5, sources:["web"], domainTools:false, objective:OBJ});
+        const web = (((r.payload||{}).data||{}).web||[]).slice(0,5).map(x=>({url:x.url, titulo:x.title, extracto:x.description}));
+        done(li,"ok","Buscado «"+q+"» · "+web.length+" resultados"); return web;
+      }catch(e){ done(li,"bad","No se pudo buscar «"+q+"»"); if(MCP_ERR[e.code]) mcpProblem = e; throw new Error(e.message||e.code); } } },
+  { name:"leer_pagina", description:"Lee una página web y devuelve su texto (hasta 6000 caracteres), sus colores de marca y su tipografía.",
+    inputSchema:{type:"object",properties:{url:{type:"string"}},required:["url"]},
+    async execute(input){ const url = String(input.url||""); if(!/^https?:\/\//.test(url)) throw new Error("URL no válida");
+      const li = log("Leyendo "+url.replace(/^https?:\/\/(www\.)?/,"").slice(0,60));
+      try{ const r = await mcp.callTool("Firecrawl","firecrawl_scrape",{url, formats:["markdown","branding"], onlyMainContent:true, objective:OBJ});
+        const p = r.payload||{}, b = p.branding||{}, md = p.markdown || ((p.data||{}).markdown) || "";
+        done(li,"ok","Leído "+url.replace(/^https?:\/\/(www\.)?/,"").slice(0,60));
+        if (!S.fuentes.includes(url)) S.fuentes.push(url);
+        return { url, titulo:(p.metadata||{}).title||"", texto: stripMd(md).slice(0,6000), colores: b.colors||null, tipografia: (b.typography||{}).fontFamilies||null };
+      }catch(e){ done(li,"bad","No se pudo leer "+url.slice(0,60)); if(MCP_ERR[e.code]) mcpProblem = e; throw new Error(e.message||e.code); } } }
+];
+
+/* ---------- 1 · investigar + 2 · enfoques ---------- */
+function brief(){ return { web:$("f-web").value.trim(), bodega:$("f-bodega").value.trim(), vino:$("f-vino").value.trim(),
+  publico:$("f-publico").value, n:+$("f-n").value, notas:$("f-notas").value.trim() }; }
+
+$("brief").addEventListener("submit", async e=>{
+  e.preventDefault(); if (busy || !sample) return;
+  const b = brief();
+  if (!b.web && !b.bodega){ setStatus("status","Escribe la web o el nombre de la bodega.",true); $("f-web").focus(); return; }
+  $("log").textContent = ""; mcpProblem = null; S.fuentes = []; ctl = new AbortController(); lock(true); step(0);
+  const think = log("Planificando la investigación");
+  try{
+    if (!mcp) throw {code:"server_not_connected"};
+    const res = await sample.json(
+`Eres el investigador de VineReach. Reúne hechos verificables sobre una bodega para un carrusel de LinkedIn dirigido a ${b.publico}.
+
+Encargo:
+- Web: ${b.web||"(no la sé: búscala)"}
+- Bodega: ${b.bodega||"(sácalo de la web)"}
+- Vino a destacar: ${b.vino||"(elige el más representativo)"}
+- Objetivo del cliente: ${b.notas||"conseguir clientes de hostelería"}
+
+Cómo trabajar: usa leer_pagina y buscar_web. Lee como máximo 4 páginas y haz como máximo 2 búsquedas. Empieza por la web oficial (portada o ficha del vino a destacar) y sigue por historia, viñedo, elaboración y premios. Para cada hecho anota de qué dominio sale. No inventes nada: lo que no encuentres, no existe.
+
+Al terminar responde solo con JSON:
+{"bodega":"nombre","denominacion":"D.O. …","vino_foco":"nombre completo","dossier":"- hecho [dominio]\\n- hecho [dominio]…  (12 a 25 hechos útiles para vender a hostelería: origen, viñedo, elaboración, notas de cata, maridajes, servicio, premios con año, sellos, formatos)","colores":["#hex de la marca, 2 a 4"],"tipografia_web":"nombre o null"}`,
+      { tools: TOOLS, signal: ctl.signal, onText: ()=>{ think.lastChild.textContent = "Redactando el dossier"; } });
+    done(think,"ok","Dossier listo");
+    if (!res || !res.dossier) throw {code:"invalid_json"};
+    S = Object.assign(S, { example:false, bodega:res.bodega||b.bodega, denominacion:res.denominacion||"", vinoFoco:res.vino_foco||b.vino,
+      dossier:String(res.dossier), colores:(Array.isArray(res.colores)?res.colores:[]).filter(c=>/^#[0-9a-f]{3,8}$/i.test(c)).slice(0,4),
+      tipografiaWeb:res.tipografia_web||null, enfoques:[], enfoque:null });
+    render(); save();
+    await proposeAngles(b);
+  }catch(err){
+    done(think,"bad");
+    if (mcpProblem || (err && MCP_ERR[err.code])) setStatus("status", errMsg(mcpProblem||err), true);
+    else setStatus("status", errMsg(err), err && err.code!=="cancelled");
+  }finally{ lock(false); }
+});
+
+async function proposeAngles(b){
+  step(1); const li = log("Pensando enfoques para "+b.publico);
+  const r = await sample.json(
+`Eres estratega de contenido B2B para bodegas. Con este dossier, propón 3 enfoques DISTINTOS para un carrusel de LinkedIn de ${b.n} slides dirigido a ${b.publico}. Objetivo del cliente: ${b.notas||"conseguir clientes de hostelería"}.
+
+Dossier (única fuente de hechos):
+"""
+${S.dossier.slice(0,9000)}
+"""
+
+Cada enfoque debe apoyarse en hechos concretos del dossier y hablar del negocio del cliente (su carta, su margen, su sala, sus comensales), no solo del vino.
+Responde solo con JSON: {"enfoques":[{"titulo":"3-6 palabras","gancho":"titular de portada, máx. 10 palabras","idea":"la historia del carrusel en 1-2 frases","por_que":"por qué funciona con este público, 1 frase"}]}`,
+    { signal: ctl.signal, cache:false });
+  const list = (r && Array.isArray(r.enfoques) ? r.enfoques : []).slice(0,3);
+  if (!list.length) throw {code:"invalid_json"};
+  S.enfoques = list; done(li,"ok","3 enfoques propuestos"); showAngles(); save();
+  setStatus("status","Elige un enfoque y pulsa Diseñar.");
+}
+function showAngles(){
+  const box = $("angles"); box.textContent = ""; $("anglesPanel").hidden = !S.enfoques.length;
+  S.enfoques.forEach((a,i)=>{
+    const btn = document.createElement("button"); btn.type="button"; btn.className = "angle"+(S.enfoque===i?" sel":"");
+    const t = document.createElement("strong"); t.textContent = a.titulo||("Enfoque "+(i+1));
+    const g = document.createElement("span"); g.textContent = "«"+(a.gancho||"")+"»";
+    const d = document.createElement("span"); d.textContent = (a.idea||"") + (a.por_que? " "+a.por_que : "");
+    btn.append(t,g,d); btn.onclick = ()=>{ S.enfoque = i; showAngles(); $("design").disabled = busy || !sample; };
+    box.appendChild(btn);
+  });
+  $("design").disabled = busy || !sample || S.enfoque===null;
+}
+
+/* ---------- pegar datos a mano ---------- */
+$("manual").onclick = ()=>{
+  if (S.example){ S.dossier = ""; S.colores = []; }
+  S.example = false; S.enfoques = []; S.enfoque = null; render(); showAngles();
+  $("dossier").placeholder = "Pega aquí la ficha del vino, la historia de la bodega, premios… Un hecho por línea empezando con «- ».";
+  $("dossier").focus();
+  setStatus("status", sample ? "Pega los datos en el dossier y pulsa «Proponer enfoques»." : "Pega los datos en el dossier.");
+  $("go").textContent = "Proponer enfoques"; $("go").dataset.mode = "manual";
+};
+$("go").addEventListener("click", async e=>{
+  if ($("go").dataset.mode !== "manual") return;
+  e.preventDefault(); if (busy || !sample) return;
+  if (!$("dossier").value.trim()){ setStatus("status","El dossier está vacío.",true); return; }
+  S.dossier = $("dossier").value; S.bodega = $("f-bodega").value.trim() || S.bodega;
+  $("log").textContent = ""; ctl = new AbortController(); lock(true);
+  try{ step(0); log("Datos pegados a mano","ok"); await proposeAngles(brief()); }
+  catch(err){ setStatus("status", errMsg(err), err && err.code!=="cancelled"); }
+  finally{ lock(false); }
+});
+
+/* ---------- 3 · diseñar ---------- */
+const DESIGN_RULES = `REGLAS TÉCNICAS (obligatorias):
+- Cada slide es UN <div> raíz con style="width:1080px;height:1350px;position:relative;overflow:hidden;…". Todo el estilo va inline (atributo style). Prohibido <style>, <script>, enlaces, url(), imágenes externas y fuentes de fuera de esta lista.
+- Tipografías disponibles (elige 2, como mucho 3): ${FONTS.join(", ")}. Escríbelas así: font-family:'Bodoni Moda'.
+- Puedes usar flex, grid, position absolute, gradientes CSS, bordes, transform: rotate, letter-spacing y SVG inline sencillo para formas. No uses object-fit ni filter ni backdrop-filter.
+- Márgenes interiores de al menos 80px. Texto de cuerpo de 34px como mínimo; titulares de 72 a 160px. Ningún texto puede salirse del lienzo ni quedar tapado.
+- Contraste alto entre texto y fondo.
+- Pie de página en todas las slides con el nombre de la bodega y la numeración NN / NN, en el mismo sitio y estilo.`;
+function fotoRule(){ return foto
+  ? "- FOTO DE LA BOTELLA: está adjunta. Úsala en 2 o 3 slides como <img data-foto style=\"position:absolute;width:…px;height:…px;left:…px;bottom:…px\"> (la imagen se encaja dentro de esa caja sin deformarse, apoyada abajo). Diseña alrededor de ella; elige colores que combinen con la etiqueta."
+  : "- No hay foto: no uses <img>. Crea interés con tipografía, color, cifras y composición."; }
+
+$("design").onclick = async ()=>{
+  if (busy || !sample || S.enfoque===null) return;
+  const b = brief(), a = S.enfoques[S.enfoque];
+  ctl = new AbortController(); lock(true); step(2);
+  const li = log("Diseñando "+b.n+" slides: «"+(a.titulo||"")+"»");
+  try{
+    const opts = { signal: ctl.signal, cache:false, onText: ({text})=>{ li.lastChild.textContent = "Diseñando… "+Math.round(text.length/1000)+" k caracteres"; } };
+    if (foto && await canImages()) opts.images = [foto.blob];
+    const r = await sample.json(
+`Eres director de arte y copywriter de una agencia especializada en vino. Diseña desde cero un carrusel de LinkedIn de ${b.n} slides (1080×1350) para ${S.bodega}${S.denominacion?" ("+S.denominacion+")":""}, dirigido a ${b.publico}.
+
+ENFOQUE ELEGIDO: ${a.titulo}. Gancho: «${a.gancho}». Historia: ${a.idea}
+OBJETIVO DEL CLIENTE: ${b.notas||"conseguir clientes de hostelería"}
+COLORES DE MARCA: ${(S.colores||[]).join(", ")||"(no hay: propón una paleta que encaje con el vino)"}${S.tipografiaWeb?" · tipografía de su web: "+S.tipografiaWeb:""}
+
+DOSSIER (única fuente de hechos; no inventes cifras, premios, precios ni datos):
+"""
+${S.dossier.slice(0,9000)}
+"""
+
+DIRECCIÓN DE ARTE:
+- Primero decide un sistema visual propio para esta bodega (paleta derivada de su marca, pareja tipográfica, un recurso gráfico recurrente) y mantenlo en todo el carrusel.
+- Cada slide tiene una composición distinta según su contenido: portada con gancho enorme, una cifra o premio a gran tamaño, una lista con ritmo, una cita, un contraste antes/después, un bloque de color a sangre… Nada de una plantilla repetida.
+- Slide 1: el gancho. Última slide: llamada a la acción concreta y de bajo compromiso (muestras, cata, llamada de 10 minutos).
+- Una idea por slide. Titulares cortos. Español de España, de tú a tú profesional, sin emojis ni exclamaciones ni frases hechas («alta calidad», «experiencia única», «descubre»).
+${fotoRule()}
+
+${DESIGN_RULES}
+
+"caption": texto del post de LinkedIn de 600 a 1100 caracteres, empieza con una pregunta o un hecho del dossier, párrafos cortos, termina invitando a escribir por privado. Sin hashtags dentro.
+
+Responde solo con JSON: {"estilo":"el sistema visual en una frase","slides":["<div …>…</div>", …],"caption":"…","hashtags":["4 o 5, sin #"]}`, opts);
+    const slides = (r && Array.isArray(r.slides) ? r.slides : []).map(String).filter(h=>h.includes("<"));
+    if (slides.length < 3) throw {code:"invalid_json"};
+    S = Object.assign(S, { example:false, slides, estilo: r.estilo ? "Sistema visual: "+r.estilo : "", caption:String(r.caption||""), hashtags:Array.isArray(r.hashtags)?r.hashtags.map(String):[] });
+    cur = 0; render(); save(); done(li,"ok",slides.length+" slides diseñadas");
+    await reviewPass();
+    step(5); log("Listo para revisar y descargar","ok");
+    setStatus("status","Carrusel listo. Revisa cada slide y pide cambios si quieres.");
+  }catch(err){ done(li,"bad"); setStatus("status", errMsg(err), err && err.code!=="cancelled"); }
+  finally{ lock(false); }
+};
+
+/* ---------- 4 · revisar (Claude mira su propio diseño) ---------- */
+async function canImages(){ try{ const l = await sample.limits(); return !!l.images; }catch(e){ return false; } }
+async function mountFull(html){ const host = $("renderhost"); host.textContent = ""; const f = frame(html); host.appendChild(f); await fontsReady(); return f; }
+let fontsLoaded = null;
+function fontsReady(){ if (!fontsLoaded) fontsLoaded = Promise.all(FONTS.flatMap(f=>["400","700"].map(w=>document.fonts.load(`${w} 40px "${f}"`).catch(()=>null)))).then(()=>document.fonts.ready); return fontsLoaded; }
+function problems(f){
+  const root = f.firstElementChild, R = root.getBoundingClientRect(), out = [];
+  root.querySelectorAll("*").forEach(el=>{
+    if (!el.childNodes.length || ![...el.childNodes].some(n=>n.nodeType===3 && n.textContent.trim())) return;
+    const r = el.getBoundingClientRect();
+    if (r.width===0) return;
+    if (r.right > R.right+2 || r.bottom > R.bottom+2 || r.left < R.left-2 || r.top < R.top-2) out.push("texto fuera del lienzo: «"+el.textContent.trim().slice(0,40)+"»");
+    else if (el.scrollHeight > el.clientHeight+6 && getComputedStyle(el).overflow!=="visible") out.push("texto recortado: «"+el.textContent.trim().slice(0,40)+"»");
+  });
+  return [...new Set(out)].slice(0,4);
+}
+async function snap(html, scale){ const f = await mountFull(html); const c = await html2canvas(f.firstElementChild, {scale, width:W, height:H, backgroundColor:null, logging:false}); return {canvas:c, issues:problems(f)}; }
+async function contactSheet(){
+  const cols = 3, tw = 360, thh = 450, n = S.slides.length, rows = Math.ceil(n/cols);
+  const sheet = document.createElement("canvas"); sheet.width = cols*tw + (cols+1)*12; sheet.height = rows*thh + (rows+1)*12;
+  const x = sheet.getContext("2d"); x.fillStyle = "#888"; x.fillRect(0,0,sheet.width,sheet.height);
+  const issues = [];
+  for (let i=0;i<n;i++){ const {canvas, issues:is} = await snap(S.slides[i], 1/3);
+    x.drawImage(canvas, 12+(i%cols)*(tw+12), 12+Math.floor(i/cols)*(thh+12), tw, thh);
+    is.forEach(t=>issues.push("Slide "+(i+1)+": "+t)); }
+  return { blob: await new Promise(r=>sheet.toBlob(r,"image/jpeg",.85)), issues };
+}
+async function reviewPass(){
+  step(3); const li = log("Renderizando y mirando el diseño");
+  const imgs = await canImages();
+  let sheet = null; try{ sheet = await contactSheet(); }catch(e){}
+  const issues = sheet ? sheet.issues : [];
+  li.lastChild.textContent = "Revisando como director de arte" + (issues.length? " · "+issues.length+" avisos automáticos":"");
+  const opts = { signal: ctl.signal, cache:false };
+  if (imgs && sheet && sheet.blob) opts.images = [sheet.blob];
+  const r = await sample.json(
+`Eres director de arte senior. Revisa este carrusel de LinkedIn (1080×1350 por slide) antes de entregarlo al cliente.
+${opts.images ? "Te adjunto una hoja de contactos con todas las slides en orden, de izquierda a derecha y de arriba abajo." : ""}
+Avisos automáticos de maquetación: ${issues.length ? issues.join(" | ") : "ninguno"}.
+
+Busca: texto que se sale o se corta, contraste pobre, jerarquía confusa, slides demasiado cargadas o vacías, composiciones repetidas, incoherencias del sistema visual, faltas de ortografía y cualquier dato que no esté en el dossier.
+
+Dossier:
+"""
+${S.dossier.slice(0,6000)}
+"""
+
+Código actual de las slides (índice desde 0):
+${S.slides.map((h,i)=>"### "+i+"\n"+h).join("\n\n").slice(0,150000)}
+
+${DESIGN_RULES}
+
+Corrige solo lo necesario. Responde solo con JSON: {"notas":"qué has cambiado y por qué, 1-2 frases","cambios":[{"i":0,"html":"<div …>…</div>"}]}. Si todo está bien, "cambios":[].`, opts);
+  const cambios = (r && Array.isArray(r.cambios)) ? r.cambios.filter(c=>Number.isInteger(c.i) && c.i>=0 && c.i<S.slides.length && String(c.html||"").includes("<")) : [];
+  cambios.forEach(c=>{ S.slides[c.i] = String(c.html); });
+  render(); save();
+  done(li,"ok", cambios.length ? "Revisión: "+cambios.length+" slides corregidas. "+(r.notas||"") : "Revisión: sin cambios. "+(r && r.notas||""));
+}
+$("review").onclick = async ()=>{
+  if (busy || !sample || S.example) { if (S.example) setStatus("askStatus","Primero genera tu propio carrusel."); return; }
+  ctl = new AbortController(); lock(true); setStatus("askStatus","Revisando…");
+  try{ await reviewPass(); setStatus("askStatus","Revisión hecha. Mira la bitácora."); }
+  catch(err){ setStatus("askStatus", errMsg(err), err && err.code!=="cancelled"); }
+  finally{ lock(false); }
+};
+
+/* ---------- 5 · ajustes por chat ---------- */
+async function askChange(all){
+  const req = $("ask").value.trim();
+  if (!req){ setStatus("askStatus","Escribe qué quieres cambiar.",true); $("ask").focus(); return; }
+  if (busy || !sample) return;
+  ctl = new AbortController(); lock(true); setStatus("askStatus","Aplicando el cambio…");
+  const li = log((all?"Cambio general: ":"Cambio en la slide "+(cur+1)+": ")+req.slice(0,80));
+  try{
+    const scope = all ? S.slides.map((h,i)=>"### "+i+"\n"+h).join("\n\n") : "### "+cur+"\n"+S.slides[cur];
+    const r = await sample.json(
+`Eres el director de arte de este carrusel de LinkedIn. El cliente pide: «${req}».
+${all ? "Aplica el cambio a todo el carrusel manteniendo un sistema visual coherente." : "Cambia solo la slide "+cur+" (índice desde 0) y mantén su coherencia con el resto del carrusel."}
+
+Dossier (única fuente de hechos):
+"""
+${S.dossier.slice(0,6000)}
+"""
+${all ? "" : "Para coherencia, así es la slide 0:\n"+S.slides[0].slice(0,4000)+"\n"}
+Código actual:
+${scope.slice(0,150000)}
+
+${DESIGN_RULES}
+${fotoRule()}
+
+Responde solo con JSON: {"cambios":[{"i":N,"html":"<div …>…</div>"}],"caption":null}. Pon en "caption" un texto nuevo solo si el cliente lo pide.`,
+      { signal: ctl.signal, cache:false });
+    const cambios = (r && Array.isArray(r.cambios)) ? r.cambios.filter(c=>Number.isInteger(c.i) && c.i>=0 && c.i<S.slides.length && String(c.html||"").includes("<")) : [];
+    if (!cambios.length && !(r && r.caption)) throw {code:"empty_completion"};
+    cambios.forEach(c=>{ S.slides[c.i] = String(c.html); });
+    if (r.caption) S.caption = String(r.caption);
+    render(); save(); done(li,"ok"); setStatus("askStatus", cambios.length+" slide"+(cambios.length===1?"":"s")+" actualizada"+(cambios.length===1?"":"s")+".");
+    $("ask").value = "";
+  }catch(err){ done(li,"bad"); setStatus("askStatus", errMsg(err), err && err.code!=="cancelled"); }
+  finally{ lock(false); }
+}
+$("askThis").onclick = ()=>askChange(false);
+$("askAll").onclick = ()=>askChange(true);
+
+/* ---------- foto ---------- */
+$("f-foto").addEventListener("change", e=>{
+  const file = e.target.files && e.target.files[0]; if (!file) { foto = null; return; }
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = ()=>{ const m = 1200, s = Math.min(1, m/Math.max(img.width,img.height));
+    const c = document.createElement("canvas"); c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+    const type = file.type==="image/png" ? "image/png" : "image/jpeg";
+    c.toBlob(blob=>{ foto = { blob, dataURL: c.toDataURL(type,.9) }; render(); setStatus("status","Foto cargada."); }, type, .9); };
+  img.onerror = ()=>{ setStatus("status","No se pudo leer la foto. Prueba con un JPG o PNG.",true); };
+  img.src = url;
+});
+
+/* ---------- exportar ---------- */
+function base(){ return String(S.bodega||"carrusel").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"carrusel"; }
+async function offer(filename, blob){
+  try{ await dl.save({filename, data:blob}); setStatus("dlStatus","Descargado."); }
+  catch(e){ setStatus("dlStatus", e && e.code==="declined" ? "Descarga cancelada." : e && e.code==="rate_limited" ? "Espera un momento y vuelve a intentarlo." : "No se pudo descargar aquí.", e && e.code!=="declined"); }
+}
+$("pdf").onclick = async ()=>{
+  const { jsPDF } = window.jspdf || {}; if (!jsPDF || !window.html2canvas){ setStatus("dlStatus","No se pudo cargar el exportador.",true); return; }
+  $("pdf").disabled = true; setStatus("dlStatus","Preparando el PDF…");
+  try{
+    const doc = new jsPDF({orientation:"portrait", unit:"px", format:[W,H], hotfixes:["px_scaling"], compress:true});
+    for (let i=0;i<S.slides.length;i++){ setStatus("dlStatus","Preparando el PDF… "+(i+1)+"/"+S.slides.length);
+      const {canvas} = await snap(S.slides[i], 1); if (i) doc.addPage([W,H],"portrait");
+      doc.addImage(canvas.toDataURL("image/jpeg",.92),"JPEG",0,0,W,H); }
+    await offer(base()+"-carrusel.pdf", doc.output("blob"));
+  }catch(e){ setStatus("dlStatus","No se pudo generar el PDF.",true); }
+  finally{ $("pdf").disabled = false; $("renderhost").textContent = ""; }
+};
+$("png").onclick = async ()=>{
+  try{ const {canvas} = await snap(S.slides[cur], 1); canvas.toBlob(b=> b && offer(base()+"-slide-"+(cur+1)+".png", b), "image/png"); }
+  catch(e){ setStatus("dlStatus","No se pudo generar la imagen.",true); }
+};
+$("copy").onclick = async ()=>{
+  try{ await navigator.clipboard.writeText($("caption").textContent); $("copy").textContent="Copiado"; setTimeout(()=>$("copy").textContent="Copiar",1800); }
+  catch(e){ const r=document.createRange(); r.selectNodeContents($("caption")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("copy").textContent="Seleccionado: Ctrl+C"; }
+};
+
+/* ---------- arranque ---------- */
+load(); render(); showAngles(); step(S.example ? -1 : 5);
+fontsReady().then(render);
+(async ()=>{
+  const c = window.claude;
+  if (!c || !c.use){ noAI(); return; }
+  const [s, m, d] = await Promise.all([c.use("sample"), c.use("mcp"), c.use("downloads")].map(p=>p.catch(()=>null)));
+  sample = s; mcp = m; dl = d;
+  if (!sample) noAI();
+  if (!dl){ $("pdf").hidden = true; $("png").hidden = true; }
+  lock(false); showAngles();
+})();
+function noAI(){ $("noAI").hidden = false; ["go","design","askThis","askAll","review"].forEach(id=>$(id).disabled = true); if(!window.claude){ $("pdf").hidden = true; $("png").hidden = true; } }
+</script>
