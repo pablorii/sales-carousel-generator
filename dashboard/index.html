@@ -142,7 +142,7 @@
       <div class="kpi"><div class="num" id="kNuevos">—</div><div class="lbl">Nuevos esta semana</div></div>
       <div class="kpi"><div class="num" id="kTotal">—</div><div class="lbl">Total en base</div></div>
       <div class="kpi"><div class="num" id="kPendientes">—</div><div class="lbl">Pendientes</div></div>
-      <div class="kpi"><div class="num" id="kTasa">—</div><div class="lbl">Tasa respuesta</div></div>
+      <div class="kpi"><div class="num" id="kTasa">—</div><div class="lbl" id="kTasaLbl">Mercados</div></div>
     </div>
 
     <section>
@@ -232,7 +232,14 @@ fetch(CSV_URL)
     document.getElementById("kNuevos").textContent=ult.nuevos;
     document.getElementById("kTotal").textContent=ult.total;
     document.getElementById("kPendientes").textContent=ult.pendientes;
-    document.getElementById("kTasa").textContent=ult.tasa+"%";
+    // La tasa de respuesta solo tiene sentido cuando ya hay envíos; mientras tanto, nº de mercados.
+    var enviados=parseInt((rows[rows.length-1]||[])[idx.enviados],10)||0;
+    if(enviados>0){
+      document.getElementById("kTasa").textContent=ult.tasa+"%";
+      document.getElementById("kTasaLbl").textContent="Tasa respuesta";
+    } else {
+      document.getElementById("kTasa").textContent=parseDesglose(ult.desglose).length;
+    }
 
     document.getElementById("estado").style.display="none";
     document.getElementById("contenido").style.display="block";

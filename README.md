@@ -6,7 +6,7 @@ Un sistema de ventas con IA para bodegas que venden a hostelería. Tiene tres m�
 2. **Prospección:** cada lunes un escenario de Make busca restaurantes con Google Places, descarta los que ya estaban y escribe un email de primer contacto personalizado con un LLM. La bodega lo revisa antes de enviarlo.
 3. **Reporting:** un informe semanal por email y un [dashboard público](https://pablorii.github.io/sales-carousel-generator/dashboard/) con los datos agregados.
 
-> La página de la raíz (`index.html`) es la primera versión del generador: usa plantillas fijas y no IA. Se sustituirá por una web del caso de estudio.
+**Caso de estudio:** https://pablorii.github.io/sales-carousel-generator/ · La primera versión del generador, con plantillas fijas, está en `legacy/`.
 
 Los ejemplos públicos usan una bodega ficticia, *Viñas del Cierzo* (D.O. Cigales).
 

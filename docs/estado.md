@@ -7,7 +7,7 @@
 - **Carrusel de Cuatro Rayas** en Claude Design: propuesta privada con datos reales.
 
 ## Brechas respecto al rumbo
-- **Portfolio:** GitHub Pages enseña el generador antiguo, que usa plantillas, en lugar del proyecto real. Todavía no hay web del caso de estudio ni vídeo.
+- **Portfolio:** la web del caso de estudio (`index.html`, 31/10) está en la rama `claude-code-setup`, pendiente de unir a `main`. Faltan el vídeo de demo y el LinkedIn y el email de Pablo en "Sobre mí". El generador antiguo está en `legacy/`.
 - **Contenido:** el generador personaliza a partir de la web y una foto, pero todavía no con el kit de marca completo de cada bodega.
 - **Prospección:** el embudo se corta antes del envío. No se consigue el email del restaurante, no hay paso de aprobación y nunca se ha enviado nada.
 - **Seguridad:** las claves de API están escritas a mano dentro de Make.

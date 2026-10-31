@@ -1,93 +1,351 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sales Carousel Generator</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VineReach · Caso de estudio</title>
+<meta name="description" content="VineReach: sistema de ventas con IA para bodegas. Contenido para LinkedIn, prospección de restaurantes y reporting automático. Caso de estudio de Pablo Orihuela.">
+<meta property="og:title" content="VineReach · Ventas con IA para bodegas">
+<meta property="og:description" content="Un agente que diseña carruseles, una prospección automática de restaurantes y un reporting semanal. Caso de estudio de Pablo Orihuela.">
+<meta property="og:image" content="assets/ejemplo-slide-1.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Caso de estudio: una columna de lectura con bandas a sangre por módulo; tipografía de etiqueta de vino (Bodoni) + grotesca limpia (Figtree). */
+:root{
+  --bg:#F6F4F2; --surface:#FFFFFF; --fg:#1E1A1B; --muted:#635B5E; --line:#E2DCD9;
+  --wine:#6E1F33; --wine-ink:#4A1424; --on-wine:#F7EEEF; --soft:#F1E6E8; --ok:#2F6B3A;
+  --display:"Bodoni Moda", "Didot", Georgia, serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#141113; --surface:#1D191B; --fg:#EEE8E6; --muted:#A99FA3; --line:#352E31;
+  --wine:#D88A9C; --wine-ink:#2A1018; --on-wine:#F7EEEF; --soft:#2A2024; --ok:#7CC48A; color-scheme:dark}}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--wine);text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--wine);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:max(20px,env(safe-area-inset-left,0px))}
+.narrow{max-width:68ch}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.08;text-wrap:balance;margin:0}
+h1{font-size:clamp(40px,7vw,76px);letter-spacing:-.01em}
+h2{font-size:clamp(30px,4.6vw,46px)}
+h3{font-size:24px}
+p{margin:0}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--wine)}
+.lead{font-size:clamp(18px,2.2vw,21px);color:var(--muted)}
+section{padding-block:clamp(56px,9vw,104px)}
+.stack{display:flex;flex-direction:column;gap:20px}
+
+/* cabecera */
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:20px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:22px;color:var(--fg);text-decoration:none}
+.brand span{color:var(--wine)}
+.top nav{display:flex;gap:20px;flex-wrap:wrap;font-size:15px;font-weight:600}
+.top nav a{color:var(--muted);text-decoration:none}
+.top nav a:hover{color:var(--wine)}
+
+/* hero */
+.hero{padding-block:clamp(40px,8vw,96px) clamp(48px,8vw,88px)}
+.hero h1 em{font-style:italic;color:var(--wine);font-weight:500}
+.ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:999px;font-weight:600;font-size:15px;text-decoration:none;border:1.5px solid var(--wine)}
+.btn.primary{background:var(--wine);color:var(--bg)}
+.btn.ghost{color:var(--wine)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:clamp(40px,6vw,64px)}
+.stat{background:var(--bg);padding:20px 18px}
+.stat b{display:block;font-family:var(--display);font-size:clamp(34px,4.5vw,46px);line-height:1;color:var(--wine);font-variant-numeric:tabular-nums}
+.stat span{display:block;margin-top:8px;font-size:14px;color:var(--muted);line-height:1.35}
+.source{font-size:13px;color:var(--muted);margin-top:10px}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* problema */
+.problems{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-top:36px}
+.problems div{border-top:2px solid var(--fg);padding-top:16px}
+.problems h3{font-size:21px;margin-bottom:8px}
+.problems p{color:var(--muted);font-size:16px}
+@media (max-width:760px){.problems{grid-template-columns:minmax(0,1fr)}}
+
+/* flujo de módulos */
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:40px;position:relative}
+.flow a{display:flex;flex-direction:column;gap:6px;padding:22px 22px 24px;background:var(--surface);border:1px solid var(--line);text-decoration:none;color:var(--fg);position:relative}
+.flow a+a{border-left:none}
+.flow a:hover{background:var(--soft)}
+.flow .n{font-family:var(--display);font-size:15px;color:var(--wine);font-weight:700;letter-spacing:.05em}
+.flow strong{font-family:var(--display);font-size:22px}
+.flow span{font-size:15px;color:var(--muted)}
+.flow a:not(:last-child)::after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:var(--wine);color:var(--bg);display:grid;place-items:center;font-size:14px;z-index:1}
+@media (max-width:760px){.flow{grid-template-columns:minmax(0,1fr)}.flow a+a{border-left:1px solid var(--line);border-top:none}.flow a:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-13px;transform:translateX(50%)}}
+
+/* bandas de módulo */
+.band{border-top:1px solid var(--line)}
+.band.dark{background:var(--wine-ink);color:var(--on-wine);border:none}
+.band.dark .eyebrow{color:#E9A9B7}
+.band.dark .lead,.band.dark .muted{color:#D9C3C8}
+.band.dark a{color:#F2C3CD}
+.mod-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:end}
+@media (max-width:860px){.mod-head{grid-template-columns:minmax(0,1fr)}}
+.steps{list-style:none;padding:0;margin:32px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 28px;counter-reset:s}
+.steps li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;font-size:16px}
+.steps li::before{content:counter(s);width:28px;height:28px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:13px;font-weight:700;opacity:.8}
+.steps b{display:block}
+.steps span{opacity:.82}
+@media (max-width:860px){.steps{grid-template-columns:minmax(0,1fr)}}
+.shot{margin-top:40px;border-radius:10px;overflow:hidden;box-shadow:0 18px 50px rgba(10,4,6,.28);border:1px solid rgba(255,255,255,.08)}
+.slides{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:28px}
+.slides img{border-radius:4px;aspect-ratio:4/5;object-fit:cover;width:100%}
+@media (max-width:760px){.slides{grid-template-columns:repeat(5,64%);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}.slides img{scroll-snap-align:start}}
+.caption{font-size:14px;margin-top:12px}
+
+/* prospección */
+.pipeline{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;align-items:center}
+.chip{padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:14.5px;font-weight:600}
+.chip.human{background:var(--soft);border-color:var(--wine);color:var(--wine)}
+.arrow{color:var(--muted)}
+.compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:40px}
+@media (max-width:860px){.compare{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.card .tag{align-self:flex-start;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--soft);color:var(--wine)}
+.mail{font-size:15.5px;line-height:1.55;border-left:3px solid var(--line);padding-left:14px;color:var(--muted)}
+.mail .redact{background:var(--fg);color:var(--fg);border-radius:2px;padding:0 4px}
+.fixes{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px;font-size:15.5px}
+.fixes li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px}
+.fixes li::before{content:"";width:8px;height:8px;margin-top:9px;background:var(--wine);border-radius:50%}
+
+/* reporting */
+.report{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:40px;align-items:center;margin-top:12px}
+@media (max-width:860px){.report{grid-template-columns:minmax(0,1fr)}}
+.report img{border-radius:10px;border:1px solid var(--line)}
+
+/* aprendizajes */
+.lessons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 40px;margin-top:36px}
+.lessons div{display:flex;flex-direction:column;gap:6px}
+.lessons h3{font-size:21px}
+.lessons p{color:var(--muted);font-size:16px}
+@media (max-width:760px){.lessons{grid-template-columns:minmax(0,1fr)}}
+.stackline{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+
+/* sobre mí */
+.about{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:40px}
+@media (max-width:760px){.about{grid-template-columns:minmax(0,1fr)}}
+.about dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 18px;font-size:16px}
+.about dt{color:var(--muted)}
+.about dd{margin:0;font-weight:500}
+footer{border-top:1px solid var(--line);padding-block:28px 40px;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Sales Carousel Generator</h1>
-      <p class="subtitle-demo">Demo interactiva - Fase 1 de VineReach: Sistema de ventas AI para bodegas</p>
-      <p>Completa los datos de tu producto — genera 8 slides listos para LinkedIn.</p>
-    </header>
 
-    <main>
-      <!-- Input Panel -->
-      <section class="panel" id="input-panel">
+<header class="wrap top">
+  <a class="brand" href="#">Vine<span>Reach</span></a>
+  <nav aria-label="Secciones">
+    <a href="#modulos">Cómo funciona</a>
+    <a href="#aprendizajes">Lo que aprendí</a>
+    <a href="#sobre-mi">Sobre mí</a>
+  </nav>
+</header>
 
-        <div class="field">
-          <label for="tema">Tema del carrusel</label>
-          <input type="text" id="tema" placeholder="Ej: Cómo cerrar deals en 50% menos tiempo" />
+<main>
+  <section class="wrap hero">
+    <div class="stack narrow">
+      <p class="eyebrow">Caso de estudio · IA aplicada a ventas B2B</p>
+      <h1>Un equipo comercial con IA para <em>bodegas</em> que venden a hostelería</h1>
+      <p class="lead">VineReach hace el trabajo previo a la venta: crea contenido para LinkedIn a partir de la identidad de cada bodega, encuentra restaurantes con potencial, redacta el primer contacto y mide el resultado cada semana. El comercial sigue decidiendo; VineReach le quita horas de trabajo repetitivo.</p>
+      <div class="ctas">
+        <a class="btn primary" href="#modulos">Ver cómo funciona</a>
+        <a class="btn ghost" href="https://github.com/pablorii/sales-carousel-generator">Código en GitHub</a>
+      </div>
+    </div>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="sTotal">64</b><span>restaurantes identificados y con email redactado</span></div>
+      <div class="stat"><b id="sSemanas">17</b><span>informes semanales generados automáticamente</span></div>
+      <div class="stat"><b id="sMercados">2</b><span>mercados analizados</span></div>
+      <div class="stat"><b>3</b><span>módulos conectados: contenido, prospección y reporting</span></div>
+    </div>
+    <p class="source" id="sFuente">Datos del último informe semanal automático.</p>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="stack narrow">
+        <p class="eyebrow">El problema</p>
+        <h2>Las bodegas no tienen un problema de producto. Tienen un problema de proceso.</h2>
+      </div>
+      <div class="problems">
+        <div><h3>Prospección a ciegas</h3><p>El comercial elige a quién llamar por intuición o por un Excel que nadie actualiza.</p></div>
+        <div><h3>Mensajes genéricos</h3><p>El primer contacto suena a plantilla y el restaurante lo ignora.</p></div>
+        <div><h3>Sin visibilidad</h3><p>Nadie sabe cuántos contactos se hicieron esta semana ni qué funcionó.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="modulos">
+    <div class="wrap">
+      <div class="stack narrow">
+        <p class="eyebrow">La solución</p>
+        <h2>Tres módulos, un mismo embudo</h2>
+        <p class="lead">El contenido atrae, la prospección abre conversaciones y el reporting dice qué está funcionando.</p>
+      </div>
+      <div class="flow">
+        <a href="#contenido"><span class="n">01</span><strong>Contenido</strong><span>Un agente investiga la bodega y diseña carruseles de LinkedIn.</span></a>
+        <a href="#prospeccion"><span class="n">02</span><strong>Prospección</strong><span>Cada lunes busca restaurantes nuevos y redacta el primer email.</span></a>
+        <a href="#reporting"><span class="n">03</span><strong>Reporting</strong><span>Informe semanal por email y dashboard público.</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="band dark" id="contenido">
+    <div class="wrap">
+      <div class="mod-head">
+        <div class="stack">
+          <p class="eyebrow">Módulo 01 · Contenido</p>
+          <h2>Un agente que diseña cada carrusel desde cero</h2>
         </div>
+        <p class="lead">No rellena una plantilla: lee la web de la bodega, decide el enfoque y crea un sistema visual propio para ella. Después revisa su trabajo mirando el resultado, como haría un director de arte.</p>
+      </div>
+      <ol class="steps">
+        <li><div><b>Investiga</b><span>Lee la web oficial y busca premios y prensa. Solo usa hechos con fuente.</span></div></li>
+        <li><div><b>Propone tres enfoques</b><span>Cada uno pensado para el negocio del restaurante, no solo para el vino.</span></div></li>
+        <li><div><b>Diseña cada slide</b><span>Composición distinta por slide, con la paleta y la tipografía de la marca.</span></div></li>
+        <li><div><b>Se autorrevisa</b><span>Renderiza todas las slides, las mira en imagen y corrige textos cortados o contraste.</span></div></li>
+        <li><div><b>Acepta cambios por chat</b><span>«Haz la portada más sobria», «pon el premio más grande».</span></div></li>
+        <li><div><b>Exporta a PDF</b><span>El formato que LinkedIn publica como documento deslizable.</span></div></li>
+      </ol>
+      <div class="shot"><img src="assets/generador.png" width="1360" height="900" alt="Interfaz del generador: encargo de la bodega, proceso del agente, dossier y vista previa del carrusel" loading="lazy"></div>
+      <div class="slides">
+        <img src="assets/ejemplo-slide-1.jpg" width="540" height="675" alt="Portada: El rosado que tu carta de verano está pidiendo" loading="lazy">
+        <img src="assets/ejemplo-slide-2.jpg" width="540" height="675" alt="Temperatura de servicio 6–8 ºC en grande" loading="lazy">
+        <img src="assets/ejemplo-slide-3.jpg" width="540" height="675" alt="Maridaje: arroces, ensaladas y pescado azul" loading="lazy">
+        <img src="assets/ejemplo-slide-4.jpg" width="540" height="675" alt="Cita: un rosado con historia es la recomendación más fácil para tu sala" loading="lazy">
+        <img src="assets/ejemplo-slide-5.jpg" width="540" height="675" alt="Llamada a la acción: ¿Te enviamos dos botellas?" loading="lazy">
+      </div>
+      <p class="caption muted">Ejemplo con una bodega ficticia, <i>Viñas del Cierzo</i> (D.O. Cigales). Stack: Claude (con la cuenta del usuario, sin coste de API), Firecrawl para leer webs, html2canvas y jsPDF.</p>
+    </div>
+  </section>
 
-        <div class="field">
-          <label for="perfil">Perfil del vendedor</label>
-          <select id="perfil">
-            <option value="SDR">SDR</option>
-            <option value="AE">AE (Account Executive)</option>
-            <option value="VP Sales">VP Sales</option>
-          </select>
+  <section class="band" id="prospeccion">
+    <div class="wrap">
+      <div class="mod-head">
+        <div class="stack">
+          <p class="eyebrow">Módulo 02 · Prospección</p>
+          <h2>Restaurantes nuevos cada lunes, con el primer email ya escrito</h2>
         </div>
-
-        <div class="field">
-          <label for="producto">Nombre del producto</label>
-          <input type="text" id="producto" placeholder="Ej: VineReach" />
+        <p class="lead">Un escenario de Make busca en Google Places, descarta los que ya están en la base y pide a un LLM un resumen, un asunto y un email personalizado para cada uno. La bodega revisa y aprueba antes de enviar.</p>
+      </div>
+      <div class="pipeline" aria-label="Flujo de la prospección">
+        <span class="chip">Lunes 8:00</span><span class="arrow" aria-hidden="true">→</span>
+        <span class="chip">Google Places</span><span class="arrow" aria-hidden="true">→</span>
+        <span class="chip">Filtro de duplicados</span><span class="arrow" aria-hidden="true">→</span>
+        <span class="chip">LLM redacta</span><span class="arrow" aria-hidden="true">→</span>
+        <span class="chip">Google Sheets</span><span class="arrow" aria-hidden="true">→</span>
+        <span class="chip human">Revisión humana</span>
+      </div>
+      <div class="compare">
+        <div class="card">
+          <span class="tag">Versión 1 · email real generado</span>
+          <p class="mail">«Estimado equipo de <span class="redact">restaurante</span>, me dirijo a ustedes desde una bodega de Ribera del Duero, ofreciendo vinos de alta calidad que podrían complementar perfectamente su carta, me gustaría concertar una reunión para discutir posibles colaboraciones.»</p>
+          <p class="muted" style="font-size:15px">Correcto pero intercambiable: valdría para cualquier restaurante y cualquier bodega. Es justo el email que se ignora.</p>
         </div>
-
-        <div class="field">
-          <label for="publico">Público objetivo</label>
-          <input type="text" id="publico" placeholder="Ej: Equipos de ventas B2B" />
+        <div class="card">
+          <span class="tag">Qué cambié y por qué</span>
+          <ul class="fixes">
+            <li><span><b>Reglas duras en el prompt:</b> prohibido «Estimado equipo», «alta calidad» o «me dirijo a ustedes». Cada email tiene que citar un detalle verificable del restaurante y cerrar con algo de bajo compromiso (10 minutos o dos botellas de muestra).</span></li>
+            <li><span><b>Diagnóstico con datos:</b> el informe semanal mostraba 0 restaurantes nuevos en 6 de 9 semanas. La causa: 6 búsquedas fijas que Google respondía siempre con los mismos 20 resultados. Ahora rotan 24 búsquedas.</span></li>
+            <li><span><b>Menos coste:</b> el filtro de duplicados se ejecuta antes de llamar al LLM, así no se redactan emails que se van a descartar.</span></li>
+          </ul>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="field">
-          <label>3 Beneficios Clave</label>
-          <input type="text" id="b1" placeholder="Beneficio 1 — Ej: Cierra deals 50% más rápido" />
-          <input type="text" id="b2" placeholder="Beneficio 2 — Ej: Pipeline visible en tiempo real" class="mt-s" />
-          <input type="text" id="b3" placeholder="Beneficio 3 — Ej: Integra con tu CRM actual" class="mt-s" />
-        </div>
+  <section class="band" id="reporting">
+    <div class="wrap report">
+      <div class="stack">
+        <p class="eyebrow">Módulo 03 · Reporting</p>
+        <h2>Cada lunes, un informe que nadie tiene que preparar</h2>
+        <p class="lead">Una hora después de la prospección, otro escenario cuenta el embudo, desglosa por mercado y pide al LLM un resumen ejecutivo con una recomendación concreta. Llega por email y alimenta un dashboard público con datos agregados, sin información de contactos.</p>
+        <p><a class="btn ghost" href="dashboard/">Abrir el dashboard en vivo</a></p>
+      </div>
+      <img src="assets/dashboard.png" width="1100" height="1000" alt="Dashboard de VineReach con prospectos por semana y desglose por mercado" loading="lazy">
+    </div>
+  </section>
 
-        <button id="generate-btn" class="btn-primary" disabled>Generar Carrusel</button>
-        <p id="error-msg" class="error hidden"></p>
-      </section>
+  <section class="band" id="aprendizajes">
+    <div class="wrap">
+      <div class="stack narrow">
+        <p class="eyebrow">Decisiones y aprendizajes</p>
+        <h2>Lo que haría igual y lo que aprendí</h2>
+      </div>
+      <div class="lessons">
+        <div><h3>La IA no inventa datos</h3><p>Todo lo que dicen los carruseles y los emails sale de una fuente: la web de la bodega, Google Places o lo que escribe el cliente. Lo que falta se queda como hueco a rellenar, no como cifra inventada.</p></div>
+        <div><h3>Siempre hay un humano antes de enviar</h3><p>El sistema prepara y propone; la bodega aprueba. Un email malo a un restaurante cuesta más que el tiempo que ahorra.</p></div>
+        <div><h3>Medir es lo que encontró el fallo</h3><p>Sin el informe semanal, la prospección habría seguido «funcionando» meses sin encontrar a nadie nuevo.</p></div>
+        <div><h3>Coste casi cero</h3><p>Herramientas gratuitas o ya contratadas: Make, Groq, Resend, Google Sheets y el plan gratuito de Google Places. El agente de contenido usa la cuenta de Claude de quien lo abre.</p></div>
+      </div>
+      <div class="stackline" aria-label="Stack">
+        <span class="chip">Claude</span><span class="chip">Make</span><span class="chip">Google Places API</span><span class="chip">Groq · Llama 3.3</span><span class="chip">Firecrawl</span><span class="chip">Resend</span><span class="chip">Google Sheets</span><span class="chip">HTML · CSS · JavaScript</span>
+      </div>
+    </div>
+  </section>
 
-      <!-- Preview Panel -->
-      <section class="panel" id="preview-panel">
-        <div class="preview-header">
-          <h2>Preview</h2>
-          <div class="preview-actions hidden" id="preview-actions">
-            <button id="copy-text-btn" class="btn-secondary">Copiar todo</button>
-            <button id="download-btn" class="btn-secondary">Descargar HTML</button>
-          </div>
-        </div>
+  <section class="band">
+    <div class="wrap stack narrow">
+      <p class="eyebrow">Siguiente paso</p>
+      <h2>Del embudo de prueba a una bodega real</h2>
+      <p class="lead">Hoy el sistema encuentra restaurantes y redacta el contacto, pero todavía no envía: no hay ninguna bodega cliente que firme esos emails. Lo siguiente es cerrar el embudo (aprobación, envío y seguimiento) y probarlo durante un mes con una bodega piloto.</p>
+    </div>
+  </section>
 
-        <div id="carousel-wrapper">
-          <div class="placeholder">
-            <div class="placeholder-icon">⟳</div>
-            <p>Completa el formulario y haz click en <strong>Generar Carrusel</strong></p>
-          </div>
-        </div>
+  <section class="band" id="sobre-mi">
+    <div class="wrap about">
+      <div class="stack">
+        <p class="eyebrow">Sobre mí</p>
+        <h2>Pablo Orihuela</h2>
+        <p class="lead">Vengo de ventas y marketing, y uso la IA para automatizar lo que más tiempo le quita a un equipo comercial. VineReach lo he diseñado y construido yo, usando Claude como herramienta de desarrollo.</p>
+      </div>
+      <dl>
+        <dt>Base</dt><dd>Valladolid, España</dd>
+        <dt>Formación</dt><dd>Máster en IA aplicada a negocio (IEBS) · Grado Superior en Ventas · Grado Superior en Marketing y Publicidad</dd>
+        <dt>Busco</dt><dd>Puestos de ventas, growth o automatización con IA</dd>
+        <dt>Contacto</dt><dd><a href="https://github.com/pablorii">github.com/pablorii</a><!-- AÑADIR: LinkedIn y email de Pablo --></dd>
+      </dl>
+    </div>
+  </section>
+</main>
 
-        <div id="visual-desc-section" class="info-section hidden">
-          <div class="info-section-header">
-            <span class="section-label">Descripción visual del slide</span>
-          </div>
-          <p id="visual-desc-text" class="info-text"></p>
-        </div>
-
-        <div id="caption-section" class="info-section hidden">
-          <div class="info-section-header">
-            <span class="section-label">Caption para LinkedIn</span>
-            <button id="copy-caption-btn" class="btn-secondary btn-sm">Copiar</button>
-          </div>
-          <pre id="caption-text" class="caption-box"></pre>
-        </div>
-      </section>
-    </main>
+<footer>
+  <div class="wrap">
+    <span>VineReach · Pablo Orihuela · 2026</span>
+    <span><a href="legacy/">Primera versión del generador (plantillas)</a> · <a href="https://github.com/pablorii/sales-carousel-generator">Código</a></span>
   </div>
+</footer>
 
-  <script src="script.js"></script>
+<script>
+// Cifras en vivo: el mismo CSV público (solo datos agregados) que usa el dashboard.
+(function(){
+  var CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTguYO8l-lWlZcR9CVC8byfgkAtyzEGfJLwdU097Z64haPVuC1k8bbxrgZzHz2xGn_SkuWuXvWCS0oJ/pub?gid=834089857&single=true&output=csv";
+  fetch(CSV).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(t){
+    var rows = t.trim().split(/\r?\n/).map(function(l){ return l.split(","); });
+    if (rows.length < 2) return;
+    var h = rows[0].map(function(x){ return x.trim().toLowerCase(); });
+    var last = rows[rows.length-1];
+    var total = parseInt(last[h.indexOf("total")],10);
+    var fecha = last[h.indexOf("fecha")];
+    var des = (t.trim().split(/\r?\n/).pop().match(/"?([^"]*:\s*\d+[^"]*)"?\s*$/)||[])[1] || "";
+    var mercados = des ? des.split(";").filter(function(x){ return x.trim(); }).length : null;
+    if (total) document.getElementById("sTotal").textContent = total;
+    document.getElementById("sSemanas").textContent = rows.length - 1;
+    if (mercados) document.getElementById("sMercados").textContent = mercados;
+    if (fecha) document.getElementById("sFuente").textContent = "Datos del informe automático del " + fecha + ".";
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>

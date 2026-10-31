@@ -16,7 +16,7 @@ Un sistema de ventas con IA para bodegas, sobre todo de Castilla y León, que ve
 
 | Módulo | Qué hace | Dónde vive | Estado (28/10/2026) |
 |---|---|---|---|
-| 1 · Contenido | Carruseles de LinkedIn sobre los vinos de una bodega | `apps/carruseles-agente/` (nuevo) · `index.html` + `script.js` (antiguo) | Nuevo: funciona como artefacto de Claude. Antiguo: publicado en GitHub Pages, **usa plantillas y no IA** |
+| 1 · Contenido | Carruseles de LinkedIn sobre los vinos de una bodega | `apps/carruseles-agente/` (nuevo) · `legacy/` (antiguo) | Nuevo: funciona como artefacto de Claude. Antiguo: **usa plantillas y no IA** |
 | 2 · Prospección | Busca restaurantes y escribe un email de primer contacto para cada uno | Make, escenario `5789249` | Activo, cada lunes a las 8:00 |
 | 3 · Reporting | Email semanal con métricas y dashboard público | Make, escenario `6494967` + `dashboard/index.html` | Activo, cada lunes a las 9:00 |
 
@@ -25,7 +25,9 @@ Estado y brechas: `docs/estado.md`. Rumbo (objetivos en orden, decide aquí qué
 ## Estructura del repositorio
 
 ```
-index.html, script.js, style.css   Generador ANTIGUO (plantillas fijas, sin IA). Es lo que sirve GitHub Pages en la raíz.
+index.html                         Web del caso de estudio (portfolio). Cifras en vivo desde el CSV de Metricas.
+legacy/                            Generador ANTIGUO (plantillas fijas, sin IA).
+assets/                            Imágenes de la web (ejemplos con la bodega ficticia, capturas).
 apps/carruseles-agente/index.html  Generador NUEVO con agente. No funciona fuera de Claude (ver más abajo).
 dashboard/index.html               Dashboard público. Lee el CSV publicado de la pestaña "Metricas" de Google Sheets.
 docs/                              Estado, tareas pendientes y documentación de Make.
