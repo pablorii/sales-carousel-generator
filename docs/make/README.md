@@ -26,11 +26,21 @@ Las claves están escritas en los headers de los módulos HTTP: **no las copies 
 
 - **Pestaña `Metricas`:** fecha, nuevos, total, pendientes, enviados, respondieron, descartados, tasa, desglose. Está publicada como CSV, que es lo que lee `dashboard/index.html`.
 
-## 5789249 · VineReach — Prospección automática (lunes 8:00)
+## Hoja de Google "VineReach — Cola de búsquedas" (desde 09/11/2026)
 
-`getCell Config!B1` → `SetVariable consulta` (rotación semanal entre 24 búsquedas con `switch(W mod 24)`) → `HTTP POST places:searchText` (20 resultados, `minRating 4.0`) → `Iterator places` → `Search Rows` (busca el nombre en la columna A) → **filtro "Solo nuevos"** → `HTTP POST Groq` (llama-3.3-70b, salida `resumen|||asunto|||cuerpo`, firma "Viñas del Cierzo") → `Add Row` (A–L).
+Pestaña `Untitled`: columna A = consulta («marisquerías en Chamberí, Madrid»), columna B = `usada` (fecha · nº de resultados, la rellena Make). Hay 504 búsquedas (24 tipos de local × 21 distritos de Madrid), intercaladas para que cada semana mezcle tipos y distritos. Con 8 por semana dan para unas 63 semanas. Para otro mercado basta con añadir filas al final.
 
-Consumo: unas 24 operaciones fijas + 2 por cada prospecto nuevo.
+## 8472140 · VineReach — Prospección (cola, 20/semana) · lunes 8:00 · ACTIVO
+
+`Search Rows` en la cola (B vacía, límite 8) → `HTTP POST places:searchText` (20 resultados, `minRating 4.0`) → `Update Cell` (marca la búsqueda como usada) → `Iterator places` → `Search Rows` en Hoja 1 (nombre en A) → **filtro "Solo nuevos"** → `Increment` (contador por ejecución) → **filtro "Tope: 20"** → `HTTP POST Groq` → `Add Row` (A–L).
+
+- **Por qué este diseño:** buscar en una ciudad entera devuelve siempre los locales más famosos, y por eso daba casi todo duplicados (1 nuevo por semana en noviembre). Buscando por distrito salen locales distintos.
+- **Prueba del 09/11/2026:** 8 búsquedas, 144 resultados y +20 filas exactas (84 → 104). 350 operaciones en 1 min 40 s.
+- **Consumo estimado:** unas 350 operaciones por semana, unas 1.500 al mes. Son 8 llamadas a Places por semana.
+
+## 5789249 · VineReach — Prospección automática · DESACTIVADO (09/11/2026)
+
+Versión anterior: una búsqueda por semana en todo Madrid, que rotaba con `switch(W mod 24)`. Se guarda como copia de seguridad.
 
 ## 6494967 · VineReach — Reporting semanal (lunes 9:00)
 

@@ -17,7 +17,7 @@ Un sistema de ventas con IA para bodegas, sobre todo de Castilla y León, que ve
 | Módulo | Qué hace | Dónde vive | Estado (28/10/2026) |
 |---|---|---|---|
 | 1 · Contenido | Carruseles de LinkedIn sobre los vinos de una bodega | `apps/carruseles-agente/` (nuevo) · `legacy/` (antiguo) | Nuevo: funciona como artefacto de Claude. Antiguo: **usa plantillas y no IA** |
-| 2 · Prospección | Busca restaurantes y escribe un email de primer contacto para cada uno | Make, escenario `5789249` | Activo, cada lunes a las 8:00 |
+| 2 · Prospección | Busca restaurantes y escribe un email de primer contacto para cada uno | Make, escenario `8472140` + hoja "Cola de búsquedas" | Activo, lunes 8:00, 20 nuevos por semana (el `5789249` antiguo está desactivado) |
 | 3 · Reporting | Email semanal con métricas y dashboard público | Make, escenario `6494967` + `dashboard/index.html` | Activo, cada lunes a las 9:00 |
 
 Estado y brechas: `docs/estado.md`. Rumbo (objetivos en orden, decide aquí qué trabajar): `docs/roadmap.md`. Escenarios de Make: `docs/make/README.md`.
@@ -64,3 +64,5 @@ No hay paso de compilación: son HTML/CSS/JS sueltos. Para probar en local, `npx
 - Para rotar valores, `switch(formatDate(now; "W") mod N; …)` funciona. `get(split(...); (parseNumber(...)+4) mod 24 + 1)` devolvió una cadena vacía.
 - El filtro de duplicados tiene que ir en el primer módulo **después** de `filterRows`, antes de llamar al LLM, para no gastar llamadas en vano.
 - `executions_get-detail` no devuelve el detalle de cada módulo en este plan. Para saber cuántos módulos se ejecutaron, cuenta las operaciones (`executions_get`).
+- (09/11/2026) Buscar «tipo de local + ciudad» en Google Places devuelve siempre los locales más famosos: tras unas semanas casi todo son duplicados. Funciona buscar «tipo + distrito» desde una cola en Google Sheets, con un contador `util:FunctionIncrement` (reset por ejecución) y un filtro `≤ 20`.
+- Una ejecución larga (más de 1 minuto) hace que `scenarios_run` con `responsive:true` devuelva *Bad Gateway* aunque la ejecución siga en marcha. Compruébalo con `executions_list` y `executions_get`.
